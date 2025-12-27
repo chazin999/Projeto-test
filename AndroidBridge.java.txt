@@ -1,0 +1,95 @@
+package com.seupacote.app; // TROCA PRO SEU PACOTE
+
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.ContentValues;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.webkit.JavascriptInterface;
+
+import androidx.core.app.NotificationCompat;
+
+import java.io.OutputStream;
+
+public class AndroidBridge {
+
+    private final Context context;
+    private static final String CHANNEL_ID = "DIVIDIR_FOTOS";
+
+    public AndroidBridge(Context ctx) {
+        this.context = ctx;
+        criarCanal();
+    }
+
+    @JavascriptInterface
+    public void saveImage(String base64Image) {
+        try {
+            String base64 = base64Image
+                    .replace("data:image/png;base64,", "")
+                    .replace("data:image/jpeg;base64,", "");
+
+            byte[] bytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT);
+            Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+            String nome = "imagem_" + System.currentTimeMillis() + ".png";
+
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, nome);
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+            values.put(
+                    MediaStore.Images.Media.RELATIVE_PATH,
+                    Environment.DIRECTORY_PICTURES + "/DividirFotos"
+            );
+
+            Uri uri = context.getContentResolver()
+                    .insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+            if (uri != null) {
+                OutputStream out = context.getContentResolver().openOutputStream(uri);
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+                out.close();
+
+                notify("Imagem salva 😎📸");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            notify("Erro ao salvar 💀");
+        }
+    }
+
+    @JavascriptInterface
+    public void notify(String msg) {
+        NotificationManager manager =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(context, CHANNEL_ID)
+                        .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                        .setContentTitle("✂️ Dividir Fotos")
+                        .setContentText(msg)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setAutoCancel(true);
+
+        manager.notify((int) System.currentTimeMillis(), builder.build());
+    }
+
+    private void criarCanal() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel =
+                    new NotificationChannel(
+                            CHANNEL_ID,
+                            "Dividir Fotos",
+                            NotificationManager.IMPORTANCE_HIGH
+                    );
+
+            NotificationManager manager =
+                    context.getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(channel);
+        }
+    }
+}

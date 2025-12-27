@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>divida suas fotos perfeitamente</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --neon-blue:#00f7ff;
+    --neon-purple:#a855f7;
+    --neon-pink:#ff3cac;
+    --neon-green:#00ff9d;
+    --card:rgba(15,15,35,.75);
+    --glass:blur(20px);
+    --radius:22px;
+}
+
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Poppins',sans-serif;
+    color:#fff;
+    background:
+        radial-gradient(circle at 10% 20%, #3b82f6, transparent 40%),
+        radial-gradient(circle at 90% 30%, #9333ea, transparent 45%),
+        radial-gradient(circle at 50% 90%, #06b6d4, transparent 45%),
+        linear-gradient(180deg,#020210,#050518 60%,#020210);
+    overflow-x:hidden;
+}
+
+/* ===== BRILHOS SUBINDO ===== */
+#sparkles{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+}
+
+/* ===== LOADER ===== */
+.loader{
+    position:fixed;
+    inset:0;
+    background:rgba(5,5,20,.9);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:9999;
+    flex-direction:column;
+}
+
+.loader span{
+    margin-bottom:20px;
+    font-family:'Orbitron';
+    font-size:18px;
+}
+
+.bar{
+    width:320px;
+    height:12px;
+    border-radius:20px;
+    background:rgba(255,255,255,.1);
+    overflow:hidden;
+}
+
+.bar div{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,var(--neon-blue),var(--neon-purple),var(--neon-green));
+    box-shadow:0 0 15px var(--neon-blue);
+    transition:width .25s;
+}
+
+header{
+    position:relative;
+    z-index:2;
+    text-align:center;
+    padding:60px 20px;
+    background:linear-gradient(135deg,rgba(0,247,255,.25),rgba(168,85,247,.2));
+    backdrop-filter:blur(12px);
+}
+
+header h1{
+    font-family:'Orbitron',sans-serif;
+    font-size:3rem;
+    margin:0;
+    text-shadow:0 0 12px var(--neon-blue),0 0 30px var(--neon-purple);
+}
+
+.container{
+    position:relative;
+    z-index:2;
+    max-width:1350px;
+    margin:auto;
+    padding:50px 20px;
+}
+
+.upload-box,
+.options-box{
+    background:var(--card);
+    backdrop-filter:var(--glass);
+    border-radius:var(--radius);
+    padding:28px;
+    margin-bottom:35px;
+    box-shadow:0 0 35px rgba(0,247,255,.3);
+}
+
+.upload-box input{
+    width:100%;
+    padding:20px;
+    border-radius:16px;
+    border:2px dashed var(--neon-blue);
+    background:rgba(0,0,0,.5);
+    color:#fff;
+}
+
+.options-box{
+    display:flex;
+    gap:25px;
+    flex-wrap:wrap;
+    align-items:center;
+}
+
+.options-box input{
+    width:90px;
+    padding:10px;
+    border-radius:14px;
+    border:none;
+    background:rgba(0,0,0,.5);
+    color:#fff;
+}
+
+.gallery{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+    gap:35px;
+}
+
+.photo{
+    position:relative;
+    background:var(--card);
+    backdrop-filter:var(--glass);
+    border-radius:24px;
+    padding:18px;
+}
+
+.photo img{width:100%;border-radius:18px}
+
+.photo canvas{
+    position:absolute;
+    top:18px;
+    left:18px;
+    pointer-events:none;
+}
+
+.preview-box{
+    margin-top:60px;
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+    gap:30px;
+}
+
+.preview-item{
+    background:var(--card);
+    backdrop-filter:var(--glass);
+    border-radius:20px;
+    padding:16px;
+    text-align:center;
+}
+
+.preview-item img{
+    width:120px;
+    height:120px;
+    object-fit:cover;
+    border-radius:14px;
+}
+
+.preview-item button{
+    margin-top:12px;
+    width:100%;
+    padding:11px;
+    border-radius:14px;
+    border:none;
+    cursor:pointer;
+    background:linear-gradient(135deg,var(--neon-green),#00ffd5);
+}
+
+.download-btn{
+    margin:70px auto 0;
+    display:none;
+    padding:20px 44px;
+    font-size:20px;
+    font-family:'Orbitron';
+    border-radius:26px;
+    border:none;
+    cursor:pointer;
+    background:linear-gradient(135deg,var(--neon-blue),var(--neon-purple));
+}
+
+footer{
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    width:100%;
+    display:flex;
+    justify-content:center;
+    z-index:3;
+}
+
+.socials{
+    display:flex;
+    gap:18px;
+}
+
+.socials a{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.35);
+    box-shadow:0 0 10px rgba(0,247,255,.4);
+    transition:.25s;
+}
+
+.socials a:hover{
+    transform:scale(1.2);
+    box-shadow:0 0 20px var(--neon-pink);
+}
+
+.socials img{
+    width:18px;
+    height:18px;
+    opacity:.85;
+    pointer-events:none;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="sparkles"></canvas>
+
+<div class="loader" id="loader">
+    <span id="loaderText">Processando...</span>
+    <div class="bar"><div id="progress"></div></div>
+</div>
+
+<header>
+    <h1>✂️ dividir fotos</h1>
+    <p>Recorte imagens no modo cyberpunk 🌌</p>
+</header>
+
+<div class="container">
+    <div class="upload-box">
+        <input type="file" id="photoInput" accept="image/*" multiple>
+    </div>
+
+    <div class="options-box">
+        Linhas verticais:
+        <input type="number" id="vLines" value="2" min="1">
+        Linhas horizontais:
+        <input type="number" id="hLines" value="2" min="1">
+    </div>
+
+    <div class="gallery" id="gallery"></div>
+    <div class="preview-box" id="previewBox"></div>
+
+    <button id="downloadBtn" class="download-btn">Baixar tudo ⚡</button>
+</div>
+
+<footer>
+    <div class="socials">
+        <a href="https://www.instagram.com/chazin999" target="_blank">
+            <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png">
+        </a>
+        <a href="https://www.tiktok.com/@chazin999" target="_blank">
+            <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png">
+        </a>
+    </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+
+<script>
+/* ===== BRILHOS SUBINDO ===== */
+const canvas = document.getElementById("sparkles");
+const ctx = canvas.getContext("2d");
+let w,h,particles=[];
+
+function resize(){
+    w=canvas.width=window.innerWidth;
+    h=canvas.height=window.innerHeight;
+}
+window.onresize=resize; resize();
+
+function createParticle(){
+    return{
+        x:Math.random()*w,
+        y:h+20,
+        r:Math.random()*2+1,
+        s:Math.random()*1.5+0.5,
+        a:Math.random()*0.6+0.2
+    }
+}
+
+for(let i=0;i<120;i++)particles.push(createParticle());
+
+function animate(){
+    ctx.clearRect(0,0,w,h);
+    particles.forEach(p=>{
+        p.y-=p.s;
+        if(p.y< -10){
+            p.x=Math.random()*w;
+            p.y=h+20;
+        }
+        ctx.beginPath();
+        ctx.fillStyle=`rgba(0,247,255,${p.a})`;
+        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fill();
+    });
+    requestAnimationFrame(animate);
+}
+animate();
+
+/* ===== LOADER ===== */
+const loader=document.getElementById("loader");
+const progress=document.getElementById("progress");
+const loaderText=document.getElementById("loaderText");
+
+function startLoader(text,cb){
+    loader.style.display="flex";
+    loaderText.textContent=text;
+    progress.style.width="0%";
+    let p=0;
+    const i=setInterval(()=>{
+        p+=Math.random()*18;
+        progress.style.width=Math.min(p,100)+"%";
+        if(p>=100){
+            clearInterval(i);
+            setTimeout(()=>{loader.style.display="none";cb();},300);
+        }
+    },180);
+}
+
+/* ===== RECORTE + ZIP ===== */
+const gallery=document.getElementById("gallery");
+const photoInput=document.getElementById("photoInput");
+const vLinesInput=document.getElementById("vLines");
+const hLinesInput=document.getElementById("hLines");
+const previewBox=document.getElementById("previewBox");
+const downloadBtn=document.getElementById("downloadBtn");
+
+let imagens=[],zipItems=[];
+
+photoInput.onchange=()=>{
+    gallery.innerHTML="";
+    previewBox.innerHTML="";
+    imagens=[];zipItems=[];
+    [...photoInput.files].forEach(file=>{
+        const r=new FileReader();
+        r.onload=e=>criarImagem(e.target.result,file.name);
+        r.readAsDataURL(file);
+    });
+};
+
+vLinesInput.oninput=hLinesInput.oninput=()=>{
+    document.querySelectorAll(".photo canvas").forEach(desenharGrade);
+    recortar();
+};
+
+function criarImagem(src,nome){
+    const div=document.createElement("div");
+    div.className="photo";
+    const img=new Image(); img.src=src;
+    const c=document.createElement("canvas");
+    div.append(img,c);
+    gallery.appendChild(div);
+    img.onload=()=>{
+        c.width=img.clientWidth;
+        c.height=img.clientHeight;
+        desenharGrade(c);
+        imagens.push({img,nome});
+        recortar();
+        downloadBtn.style.display="block";
+    };
+}
+
+function desenharGrade(c){
+    const ctx=c.getContext("2d");
+    ctx.clearRect(0,0,c.width,c.height);
+    const v=+vLinesInput.value,h=+hLinesInput.value;
+    ctx.strokeStyle="rgba(0,247,255,.9)";
+    ctx.lineWidth=2;
+    for(let i=1;i<v;i++){ctx.beginPath();ctx.moveTo(c.width/v*i,0);ctx.lineTo(c.width/v*i,c.height);ctx.stroke();}
+    for(let i=1;i<h;i++){ctx.beginPath();ctx.moveTo(0,c.height/h*i);ctx.lineTo(c.width,c.height/h*i);ctx.stroke();}
+}
+
+function recortar(){
+    previewBox.innerHTML="";zipItems=[];
+    imagens.forEach(({img,nome})=>{
+        const v=+vLinesInput.value,h=+hLinesInput.value;
+        const sw=img.naturalWidth/v,sh=img.naturalHeight/h;
+        for(let y=0;y<h;y++)for(let x=0;x<v;x++){
+            const c=document.createElement("canvas");
+            c.width=sw;c.height=sh;
+            c.getContext("2d").drawImage(img,x*sw,y*sh,sw,sh,0,0,sw,sh);
+            const data=c.toDataURL();
+            const fname=`${nome}_${y+1}_${x+1}.png`;
+            zipItems.push({data,fname});
+            const d=document.createElement("div");
+            d.className="preview-item";
+            const im=new Image(); im.src=data;
+            const b=document.createElement("button");
+            b.textContent="Download";
+            b.onclick=()=>startLoader("Baixando imagem...",()=>{
+                const a=document.createElement("a");
+                a.href=data;a.download=fname;a.click();
+            });
+            d.append(im,b);
+            previewBox.appendChild(d);
+        }
+    });
+}
+
+downloadBtn.onclick=()=>startLoader("Gerando ZIP...",async()=>{
+    const zip=new JSZip();
+    const f=zip.folder("recortes");
+    zipItems.forEach(i=>f.file(i.fname,i.data.split(",")[1],{base64:true}));
+    const blob=await zip.generateAsync({type:"blob"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="✂️Recortes🇧🇷.zip";
+    a.click();
+});
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+
+<script>
+/* ===== NOTIFICAÇÃO NATIVA ===== */
+function notify(msg){
+    if("Notification" in window){
+        if(Notification.permission === "granted"){
+            new Notification("✂️ Dividir Fotos", { body: msg });
+        }else if(Notification.permission !== "denied"){
+            Notification.requestPermission();
+        }
+    }
+}
+
+/* ===== BRILHOS SUBINDO ===== */
+const canvas = document.getElementById("sparkles");
+const ctx = canvas.getContext("2d");
+let w,h,particles=[];
+
+function resize(){
+    w=canvas.width=window.innerWidth;
+    h=canvas.height=window.innerHeight;
+}
+window.onresize=resize; resize();
+
+function createParticle(){
+    return{
+        x:Math.random()*w,
+        y:h+20,
+        r:Math.random()*2+1,
+        s:Math.random()*1.5+0.5,
+        a:Math.random()*0.6+0.2
+    }
+}
+
+for(let i=0;i<120;i++)particles.push(createParticle());
+
+function animate(){
+    ctx.clearRect(0,0,w,h);
+    particles.forEach(p=>{
+        p.y-=p.s;
+        if(p.y< -10){
+            p.x=Math.random()*w;
+            p.y=h+20;
+        }
+        ctx.beginPath();
+        ctx.fillStyle=`rgba(0,247,255,${p.a})`;
+        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fill();
+    });
+    requestAnimationFrame(animate);
+}
+animate();
+
+/* ===== LOADER ===== */
+const loader=document.getElementById("loader");
+const progress=document.getElementById("progress");
+const loaderText=document.getElementById("loaderText");
+
+function startLoader(text,cb){
+    loader.style.display="flex";
+    loaderText.textContent=text;
+    progress.style.width="0%";
+    let p=0;
+    const i=setInterval(()=>{
+        p+=12;
+        progress.style.width=Math.min(p,100)+"%";
+        if(p>=100){
+            clearInterval(i);
+            setTimeout(()=>{loader.style.display="none";cb();},300);
+        }
+    },120);
+}
+
+/* ===== RECORTE FUNCIONAL PRA APP REAL ===== */
+const gallery=document.getElementById("gallery");
+const photoInput=document.getElementById("photoInput");
+const vLinesInput=document.getElementById("vLines");
+const hLinesInput=document.getElementById("hLines");
+const previewBox=document.getElementById("previewBox");
+const downloadBtn=document.getElementById("downloadBtn");
+
+let imagens=[],zipItems=[];
+
+photoInput.onchange=()=>{
+    gallery.innerHTML="";
+    previewBox.innerHTML="";
+    imagens=[];zipItems=[];
+    [...photoInput.files].forEach(file=>{
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.src = url;
+        img.onload = ()=>{
+            criarImagem(img,file.name);
+        };
+    });
+};
+
+vLinesInput.oninput=hLinesInput.oninput=()=>{
+    document.querySelectorAll(".photo canvas").forEach(desenharGrade);
+    recortar();
+};
+
+function criarImagem(img,nome){
+    const div=document.createElement("div");
+    div.className="photo";
+    const c=document.createElement("canvas");
+    div.append(img,c);
+    gallery.appendChild(div);
+
+    c.width=img.clientWidth;
+    c.height=img.clientHeight;
+    desenharGrade(c);
+    imagens.push({img,nome});
+    recortar();
+    downloadBtn.style.display="block";
+}
+
+function desenharGrade(c){
+    const ctx=c.getContext("2d");
+    ctx.clearRect(0,0,c.width,c.height);
+    const v=+vLinesInput.value,h=+hLinesInput.value;
+    ctx.strokeStyle="rgba(0,247,255,.9)";
+    ctx.lineWidth=2;
+    for(let i=1;i<v;i++){
+        ctx.beginPath();
+        ctx.moveTo(c.width/v*i,0);
+        ctx.lineTo(c.width/v*i,c.height);
+        ctx.stroke();
+    }
+    for(let i=1;i<h;i++){
+        ctx.beginPath();
+        ctx.moveTo(0,c.height/h*i);
+        ctx.lineTo(c.width,c.height/h*i);
+        ctx.stroke();
+    }
+}
+
+function recortar(){
+    previewBox.innerHTML="";
+    zipItems=[];
+    imagens.forEach(({img,nome})=>{
+        const v=+vLinesInput.value,h=+hLinesInput.value;
+        const sw=img.naturalWidth/v,sh=img.naturalHeight/h;
+        for(let y=0;y<h;y++){
+            for(let x=0;x<v;x++){
+                const c=document.createElement("canvas");
+                c.width=sw;c.height=sh;
+                c.getContext("2d").drawImage(img,x*sw,y*sh,sw,sh,0,0,sw,sh);
+
+                c.toBlob(blob=>{
+                    const url=URL.createObjectURL(blob);
+                    const fname=`${nome}_${y+1}_${x+1}.png`;
+                    zipItems.push({blob,fname});
+
+                    const d=document.createElement("div");
+                    d.className="preview-item";
+                    const im=new Image(); im.src=url;
+                    const b=document.createElement("button");
+                    b.textContent="Download";
+                    b.onclick=()=>startLoader("Baixando imagem...",()=>{
+                        const a=document.createElement("a");
+                        a.href=url;
+                        a.download=fname;
+                        a.click();
+                        notify("Imagem salva na galeria 📸");
+                    });
+
+                    d.append(im,b);
+                    previewBox.appendChild(d);
+                });
+            }
+        }
+    });
+}
+
+downloadBtn.onclick=()=>startLoader("Gerando ZIP...",async()=>{
+    const zip=new JSZip();
+    const f=zip.folder("recortes");
+    zipItems.forEach(i=>f.file(i.fname,i.blob));
+    const blob=await zip.generateAsync({type:"blob"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download="✂️Recortes.zip";
+    a.click();
+    notify("ZIP baixado com sucesso 🚀");
+});
+</script>
+
+<button onclick="Android.notify('Funcionou 😎🔥')">
+    Testar conexão
+</button>
+
+</body>
+</html>
